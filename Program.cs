@@ -1,37 +1,152 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.CodeDom;
+using System.Collections;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 
 namespace test2 {
 
+    
+
     #region CLASSES 
-    public class Animal {
-        public string name = "";
-        public string sound = "";
-        public int age      = 0;
-        private int stomachCapacity = 100;
-        private int currentFullness = 0;
 
-        public void MakeNoise() {
-            Console.WriteLine(sound);
-        }//end function
+    public class Vehicle {
+        #region FIELDS
+        
+        // IN ORDER TO HAVE ACCESS TO THESE VARIABLES DOWNSTREAM, ADD THE 'INTERNAL'
+        // ACCESS MODIFIER TO THEM (SO THAT ANY DERIVED CLASSES CAN INTERACT WITH THEM
+        internal int _speed = 0;
+        internal string _make = "";
+        internal int _year = 0;
+        
+        #endregion
 
-        public void Eat(int amountOfFood) {
-            currentFullness += amountOfFood;
-            Console.WriteLine($"{name} is {currentFullness}% full");
-            if (currentFullness > stomachCapacity) {
-                Vomit();
+        public Vehicle(string vehicleMaker, int assemblyYear) {
+            _make = vehicleMaker;
+            _year = assemblyYear;
+            _speed = 0;
+        }//end constructor
+        public int Speed { get { return _speed; } }
+
+        public string Make { get { return _make;}}
+
+        public int Year { get { return _year;}}
+
+        public void Accelerate() {
+            _speed += 5;
+        }//end method
+
+        public void Brake() {
+            _speed -= 1;
+            _speed = _speed < 0 ? 0 : _speed; // TERNARY STATEMENT --   Set 'speed' to outcome of  ( speed < 0 ) ? -- if True ( 0 ) : if False ( speed )
+        }//end method
+
+    }//end class
+
+    // CREATE A SUBCLASS 'motorcycle' WHICH IS DERIVED FROM THE 'VEHICLE' CLASS
+    public class Motorcycle : Vehicle {
+        
+        // FIELDS
+        int _cc;
+        bool _kickStandOut = true;
+        // WE DON'T NEED TO CREATE STORAGE FOR THE FIELDS DEFINED IN THE BASE CLASS
+        //  THE BASE CLASS WILL HANDLE THOSE VALUES.
+
+        // PROPERTIES
+        public int CC {
+            get { return _cc; }
+        }//end prop
+
+        // SINCE OUR BASE CLASS HAD A CONSTRUCTOR, WE MUST PROVIDE AT LEAST THE
+        // VALUES NECESSARY TO SATISFY OUR BASE CLASS'S CONSTRUCTOR
+        public Motorcycle(int cc, string make, int year) : base (make, year) {
+
+            _cc = cc;            
+
+        }//end constructor
+
+        // THE 'ACCELERATE' METHOD ALREADY EXISTS IN OUR BASE CLASS, (SO WE HAVE ACCESS)
+        // BUT IF WE WANT TO HAVE A MODIFIED VERSION SPECIFIC TO OUR DERIVED CLASS, WE
+        // CAN USE THE 'NEW' KEYWORD TO SPECIFY THIS AS BEING THE PREFERRED METHOD FOR
+        // THE DERIVED CLASS
+        public new void Accelerate() {
+            if (!_kickStandOut) {
+                _speed += 10;
+            } else {
+                Console.WriteLine("You forgot to RESET the kickstand");
             }//end if
-        }//end function
+        }//end method
 
-        private void Vomit() {            
-            while (currentFullness > stomachCapacity) {
-                currentFullness -= 15;
-                Console.WriteLine($"{name} vomited 15 units of food..  :(");
-            }//end while
-        }//end method        
+        public void DeployKickStand() {
+            if (_kickStandOut) {
+                Console.WriteLine("The kickstand is already out");
+            } else {
+                _kickStandOut = true;
+            }//end if
+        }//end method
 
-    }//end Animal Class
+        public void ResetKickStand() {
+            if (_kickStandOut) {
+                _kickStandOut = false;
+            } else {
+               Console.WriteLine("The kickstand is already in");
+            }//end if
+        }//end method
+
+    }//end class
+
+    public class Group {
+
+        int _size = 0;
+
+        string _names = "";
+
+        public int Size { get { return _size; } private set { _size = value; } }
+
+        public string Names { get {return _names; } }
+
+        public static Group operator +(Group a, Group b) {
+            Group c = new Group();
+
+            int combinedSize = a.Size + b.Size;
+            string combinedNames = a.Names + b.Names;
+
+            c._size = combinedSize;
+            c._names = combinedNames;
+
+            return c;
+        }//end method
+
+        public static Group operator -(Group a, int count) {
+            Group c = new Group();
+
+            int combinedSize = a.Size - count;
+            string combinedNames = a.Names;
+
+            c._size = combinedSize;
+            c._names = combinedNames;
+
+            return c;
+        }//end method
+
+        public static int operator -(Group a, Group b) {
+            int result = 0;
+
+            result = a.Size - b.Size;
+
+            return result;
+        }//end method
+
+        // ADD AN ADDITION OPERATOR INTO YOUR LINKED LIST
+
+        public void AddPeople(string[] names) {
+            for (int i = 0; i < names.Length; i++) {
+                _names += names[i] + " ";
+                _size++;
+            }//end method
+        }//end method
+    }//end class    
 
     public class Refrigerator {
         #region FIELDS (BACKING FIELDS)
@@ -57,6 +172,12 @@ namespace test2 {
 
         }//end constructor
         #endregion
+
+
+        public override string ToString() {
+            return "{ \"Temp\" : \"{0}\", Model : {_model}, Contents : {_contents}, HasFreezer : {_hasFreezer}";
+        }//end method
+
 
         public void Cool() {
             _temp -= 2;            
@@ -136,25 +257,142 @@ namespace test2 {
 
     }//end class
 
+    public class Node<T> {
+        T _data = default(T);
+        Node<T> _next = null;
+    }//end class 
+
     #endregion
 
+    public class Animal { 
+        int _age = 0;
+        string _sound = "";
+
+        public Animal(int age, string noise) {
+            _age = age;
+            _sound = noise;
+        }//end constructor
+        public int Age { get { return _age; } set { _age = value; } }
+
+        public void Cry() {
+            Console.WriteLine(_sound);
+        }//end method
+
+    }//end class
+
+    public struct Pet {
+        int _age;
+        string _sound;
+        public Pet(int age, string noise) {
+            _age = age;
+            _sound = noise;
+        }//end constructor
+
+        public int Age { get { return _age; } set { _age = value; } }
+
+        public void Cry() {
+            Console.WriteLine(_sound);
+        }//end method
+    }//end struct
+
     internal class Program {
-        static void Main(string[] args) {
-
-            Refrigerator[] fridges = new Refrigerator[4];
-            for (int i = 0; i < fridges.Length; i++) {
-                fridges[i] = new Refrigerator();
-                fridges[i].SetModel($"{i}XF{i+25}");
-            }//end for
-
-            foreach (Refrigerator unit in fridges) {
-                Console.WriteLine(unit.GetModel());
-            }//end loop
+        
+        static async Task Main(string[] args) {                                            
             
+            Task finish = Breakfast();
+
+            await finish;
             
         }//end main
 
+        static async Task Breakfast() {           
+            
+            Task coffee = BrewCoffeeAsync();
+            Task browns = PrepHashbrownsAsync();
+            Task toast = MakeToastAsync(2);
+
+            
+            List<Task> tasks = new List<Task> { coffee, browns, toast };
+            while (tasks.Count > 0) {
+                Task finishedTask = await Task.WhenAny(tasks);
+
+                if (finishedTask == coffee) {
+
+                    Console.WriteLine("\tCoffee is ready!");
+
+                } else if (finishedTask == browns) {
+
+                    Console.WriteLine("\tHashbrowns are ready!");                    
+
+                } else if (finishedTask == toast) {
+
+                    Console.WriteLine("\tAvacado toast is ready!");                    
+
+                }//end if
+                await finishedTask;
+                tasks.Remove(finishedTask);
+            }//end while
+
+            Console.WriteLine("\n\n\tBreakfast is ready!");
+            
+            async Task BrewCoffeeAsync() {
+                Console.WriteLine("Grinding coffee beans");
+                
+                await Task.Delay(1000);
+
+                Console.WriteLine("Starting drip");
+
+                Console.WriteLine("Brewing...");
+
+                await Task.Delay(1500);
+            }//end method
+
+            async Task MakeToastAsync(int slices) {
+                Console.WriteLine("Getting toaster out");
+
+                for (int i = 0; i < slices; i++) {
+                    Console.WriteLine($"Putting in slice {i + 1}");
+                }//end for
+
+                Console.WriteLine("Toasting...");
+
+                await Task.Delay(1500);
+
+                Console.WriteLine("DING!!");
+
+                AvacadoToast();
+            }//end method
+
+            async Task PrepHashbrownsAsync() {
+                Console.WriteLine("Heating pan");
+                Console.WriteLine("Grating potatoes");
+
+                await Task.Delay(1000);
+                
+                Console.WriteLine("Frying hashbrowns (side one)");
+
+                await Task.Delay(1000);
+
+                Console.WriteLine("Frying hashbrowns (side two)");
+
+                await Task.Delay(1000);
+            }//end method
+
+            void AvacadoToast() {
+                Console.WriteLine("Slicing Avocado");
+                Console.WriteLine("Spreading Avocado on toast");
+            }//end method
+            
+        }//end method        
+
+        
+
+
         #region FILE INPUT/OUTPUT AND STRING MANIPULATION
+
+        /// <summary>
+        /// Static Method <c>PigLatinAttempt</c> converts simple text into pig latin.
+        /// </summary>        
         static void PigLatinAttempt() {
             //OPEN FILE
             FileStream file = new FileStream("C:\\Users\\jonat\\Documents\\WORK\\C# 3Month Lesson Plan\\Week 10\\speech.txt", FileMode.Open);
@@ -288,7 +526,7 @@ namespace test2 {
             //CLOSE THE FILE
             outfile.Close();
             #endregion
-            
+            /*
 
             //CREATE A STREAMREADER OBJECT
             StreamReader infile = new StreamReader("C:\\Users\\jonat\\Desktop\\test.txt");
@@ -301,6 +539,7 @@ namespace test2 {
                 count++;
             }//end while
             Console.WriteLine(count);
+            */
         }//end function
 
         static void BinaryFileAccess() {
